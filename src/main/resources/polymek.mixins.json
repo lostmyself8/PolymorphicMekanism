@@ -1,0 +1,30 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.jerry.polymek.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "assemblicator.FormulaicAssemblicatorMixin",
+    "assemblicator.ItemCraftingFormulaMixin",
+    "qio.QioCraftingWindowMixin",
+    "qio.PortableQioDashboardMixin",
+    "qio.QioDashboardMixin",
+    "robit.RobitRecipeCacheAccess",
+    "robit.EntityRobitMixin",
+    "robit.ItemRobitMixin",
+    "robit.CraftingRobitContainerMixin",
+    "robit.PolymorphRobitCraftingMixin",
+    "robit.RobitResultSlotMixin",
+    "robit.RobitMenuClickMixin",
+    "robit.RobitCraftingQuickMoveMixin"
+  ],
+  "client": [
+    "client.qio.GuiCraftingWindowMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

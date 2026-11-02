@@ -1,0 +1,8 @@
+{
+  "recipe.polymek.choose": "Choose a matching recipe",
+  "recipe.polymek.source": "Source:",
+  "recipe.polymek.encoded": "- %1$s",
+  "recipe.polymek.locked": "Disable automatic mode before changing the recipe.",
+  "recipe.polymek.missing_choose": "The selected recipe is unavailable. Choose a matching recipe to continue.",
+  "recipe.polymek.missing_no_match": "The selected recipe is unavailable and no recipe matches the current ingredients. Change the ingredients or restore the recipe."
+}

@@ -1,0 +1,8 @@
+{
+  "recipe.polymek.choose": "选择匹配的配方",
+  "recipe.polymek.source": "来源：",
+  "recipe.polymek.encoded": "- %1$s",
+  "recipe.polymek.locked": "请先关闭自动模式，再切换配方。",
+  "recipe.polymek.missing_choose": "所选配方已失效，请重新选择匹配的配方以继续。",
+  "recipe.polymek.missing_no_match": "所选配方已失效，当前材料也没有匹配的配方。请更换材料或恢复配方。"
+}
