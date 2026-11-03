@@ -122,7 +122,7 @@ public abstract class MixinFormulaicAssemblicator implements RecipeTarget {
         ItemStack stack = formulaSlot.getStack();
         FormulaAttachment attachment = stack.getOrDefault(MekanismDataComponents.FORMULA_HOLDER, FormulaAttachment.EMPTY);
         if (!attachment.isEmpty()) {
-            ResourceLocation encoded = stack.get(PolymekDataComponents.FORMULA_RECIPE.get());
+            ResourceLocation encoded = stack.getOrDefault(PolymekDataComponents.FORMULA_RECIPE, Optional.<ResourceLocation>empty()).orElse(null);
             return encoded == null && formula.recipe() != null ? formula.recipe().id() : encoded;
         }
         if (MekanismUtils.getCraftingInputSlots(3, 3, craftingGridSlots, true).input().isEmpty()) {
@@ -154,7 +154,7 @@ public abstract class MixinFormulaicAssemblicator implements RecipeTarget {
         FormulaAttachment attachment = stack.getOrDefault(MekanismDataComponents.FORMULA_HOLDER, FormulaAttachment.EMPTY);
         if (!attachment.isEmpty()) {
             ItemStack updated = stack.copy();
-            updated.set(PolymekDataComponents.FORMULA_RECIPE.get(), id);
+            updated.set(PolymekDataComponents.FORMULA_RECIPE, Optional.of(id));
             updated.set(MekanismDataComponents.FORMULA_HOLDER, new FormulaAttachment(attachment.inventory(), false));
             formula = new RecipeFormula(polymek$template(), recipe);
             formulaSlot.setStack(updated);
@@ -175,7 +175,7 @@ public abstract class MixinFormulaicAssemblicator implements RecipeTarget {
         }
         ItemStack stack = formulaSlot.getStack();
         FormulaAttachment attachment = stack.getOrDefault(MekanismDataComponents.FORMULA_HOLDER, FormulaAttachment.EMPTY);
-        ResourceLocation selected = stack.get(PolymekDataComponents.FORMULA_RECIPE.get());
+        ResourceLocation selected = stack.getOrDefault(PolymekDataComponents.FORMULA_RECIPE, Optional.<ResourceLocation>empty()).orElse(null);
         if (!attachment.isEmpty() && selected != null) {
             RecipeHolder<CraftingRecipe> current = polymek$exact(level, polymek$template().input(), selected);
             if (current == null || attachment.invalid()) {
@@ -219,7 +219,7 @@ public abstract class MixinFormulaicAssemblicator implements RecipeTarget {
 
     @Redirect(method = "loadFormula", at = @At(value = "INVOKE", target = "Lmekanism/common/content/assemblicator/RecipeFormula;create(Lnet/minecraft/world/level/Level;Lmekanism/common/attachments/FormulaAttachment;)Lmekanism/common/content/assemblicator/RecipeFormula;"))
     private RecipeFormula polymek$loadEncodedRecipe(Level world, FormulaAttachment attachment, ItemStack formulaStack, FormulaAttachment originalAttachment) {
-        ResourceLocation selected = formulaStack.get(PolymekDataComponents.FORMULA_RECIPE.get());
+        ResourceLocation selected = formulaStack.getOrDefault(PolymekDataComponents.FORMULA_RECIPE, Optional.<ResourceLocation>empty()).orElse(null);
         if (selected == null) {
             return RecipeFormula.create(world, attachment);
         }
@@ -242,7 +242,7 @@ public abstract class MixinFormulaicAssemblicator implements RecipeTarget {
         if (polymek$encoding == null) {
             throw new IllegalStateException("An encoded formula must have a matching selected recipe");
         }
-        stack.set(PolymekDataComponents.FORMULA_RECIPE.get(), polymek$encoding);
+        stack.set(PolymekDataComponents.FORMULA_RECIPE, Optional.of(polymek$encoding));
         return stack;
     }
 

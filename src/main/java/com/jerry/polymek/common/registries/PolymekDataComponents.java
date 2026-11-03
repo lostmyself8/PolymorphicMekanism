@@ -3,10 +3,13 @@ package com.jerry.polymek.common.registries;
 import com.jerry.polymek.PolymorphicMekanism;
 import com.jerry.polymek.compat.robit.RobitSmeltingChoice;
 import java.util.List;
+import java.util.Optional;
 import mekanism.common.registration.MekanismDeferredHolder;
 import mekanism.common.registration.impl.DataComponentDeferredRegister;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ExtraCodecs;
 
 /** Registers every Polymek data component through Mekanism's shared registration system. */
 public final class PolymekDataComponents {
@@ -16,9 +19,10 @@ public final class PolymekDataComponents {
 
     public static final DataComponentDeferredRegister DATA_COMPONENTS = new DataComponentDeferredRegister(PolymorphicMekanism.MOD_ID);
 
-    /** Stores the exact recipe encoded by a formula item. */
-    public static final MekanismDeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> FORMULA_RECIPE = DATA_COMPONENTS.simple("formula_recipe",
-          builder -> builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC));
+    /** Stores the exact encoded recipe, or an empty value for an unencoded formula item. */
+    public static final MekanismDeferredHolder<DataComponentType<?>, DataComponentType<Optional<ResourceLocation>>> FORMULA_RECIPE = DATA_COMPONENTS.simple("formula_recipe",
+          builder -> builder.persistent(ExtraCodecs.optionalEmptyMap(ResourceLocation.CODEC))
+                .networkSynchronized(ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC)));
 
     /** Stores the selected furnace recipe when a Robit is carried as an item. */
     public static final MekanismDeferredHolder<DataComponentType<?>, DataComponentType<RobitSmeltingChoice>> ROBIT_SMELTING_CHOICE = DATA_COMPONENTS.simple("robit_smelting_choice",
