@@ -4,22 +4,23 @@
   "package": "com.jerry.polymek.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "assemblicator.FormulaicAssemblicatorMixin",
-    "assemblicator.ItemCraftingFormulaMixin",
-    "qio.QioCraftingWindowMixin",
-    "qio.PortableQioDashboardMixin",
-    "qio.QioDashboardMixin",
-    "robit.RobitRecipeCacheAccess",
-    "robit.EntityRobitMixin",
-    "robit.ItemRobitMixin",
-    "robit.CraftingRobitContainerMixin",
-    "robit.PolymorphRobitCraftingMixin",
-    "robit.RobitResultSlotMixin",
-    "robit.RobitMenuClickMixin",
-    "robit.RobitCraftingQuickMoveMixin"
+    "assemblicator.MixinFormulaicAssemblicator",
+    "assemblicator.MixinItemStack",
+    "assemblicator.MixinItemCraftingFormula",
+    "qio.MixinQIOCraftingWindow",
+    "qio.MixinPortableQIODashboard",
+    "qio.MixinQIODashboard",
+    "robit.MixinRobitRecipeCacheAccess",
+    "robit.MixinEntityRobit",
+    "robit.MixinItemRobit",
+    "robit.MixinCraftingRobitContainer",
+    "robit.MixinPolymorphRobitCrafting",
+    "robit.MixinRobitResultSlot",
+    "robit.MixinRobitMenuClick",
+    "robit.MixinRobitCraftingQuickMove"
   ],
   "client": [
-    "client.qio.GuiCraftingWindowMixin"
+    "client.qio.MixinGuiCraftingWindow"
   ],
   "injectors": {
     "defaultRequire": 1

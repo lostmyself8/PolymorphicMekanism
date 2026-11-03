@@ -4,8 +4,8 @@ import mekanism.client.gui.IGuiWrapper;
 import mekanism.client.gui.element.window.GuiCraftingWindow;
 import net.minecraft.client.gui.GuiGraphics;
 
-/** Bridges native QIO window elements to the screen's single Polymorph/JEI and snapshot coordinator. */
-public interface QioNativeRecipeView {
+/** Exposes the QIO recipes widget's rendering and interaction contract to native crafting-window elements. */
+public interface QIORecipesWidget {
 
     /** Identifies the live GUI owner so a transferred window never keeps using its previous screen's coordinator. */
     boolean isFor(IGuiWrapper gui);

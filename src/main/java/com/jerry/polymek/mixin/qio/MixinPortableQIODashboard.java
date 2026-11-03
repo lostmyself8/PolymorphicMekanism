@@ -1,8 +1,8 @@
 package com.jerry.polymek.mixin.qio;
 
 import com.jerry.polymek.common.registries.PolymekDataComponents;
-import com.jerry.polymek.compat.qio.QioCraftingTarget;
-import com.jerry.polymek.compat.qio.QioSelectionStorage;
+import com.jerry.polymek.compat.qio.QIOCraftingTarget;
+import com.jerry.polymek.compat.qio.QIOSelectionStorage;
 import mekanism.common.content.qio.PortableQIODashboardInventory;
 import mekanism.common.content.qio.QIOCraftingWindow;
 import net.minecraft.resources.ResourceLocation;
@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Keeps portable dashboard choices on the actual dashboard stack across menu recreation and world saves.
  */
 @Mixin(value = PortableQIODashboardInventory.class, remap = false)
-public abstract class PortableQioDashboardMixin implements QioSelectionStorage {
+public abstract class MixinPortableQIODashboard implements QIOSelectionStorage {
 
     @Shadow
     @Final
@@ -32,7 +32,7 @@ public abstract class PortableQioDashboardMixin implements QioSelectionStorage {
     @Inject(method = "<init>", at = @At("TAIL"))
     private void polymek$restoreChoices(@Nullable Level level, ItemStack stack, CallbackInfo callback) {
         for (int index = 0; index < craftingWindows.length; index++) {
-            ((QioCraftingTarget) craftingWindows[index]).polymek$restoreRecipe(stack.get(PolymekDataComponents.qioRecipeComponent(index)));
+            ((QIOCraftingTarget) craftingWindows[index]).polymek$restoreRecipe(stack.get(PolymekDataComponents.qioRecipeComponent(index)));
             craftingWindows[index].invalidateRecipe();
         }
     }

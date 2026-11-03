@@ -1,6 +1,6 @@
 package com.jerry.polymek.mixin.client.qio;
 
-import com.jerry.polymek.client.qio.GuiQioRecipePickerElement;
+import com.jerry.polymek.client.qio.GuiQIORecipePickerElement;
 import mekanism.client.gui.IGuiWrapper;
 import mekanism.client.gui.element.window.GuiCraftingWindow;
 import mekanism.client.gui.element.window.GuiWindow;
@@ -16,19 +16,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Attaches the selector to each native client window instead of a tick-positioned full-screen overlay.
  */
 @Mixin(value = GuiCraftingWindow.class, remap = false)
-public abstract class GuiCraftingWindowMixin extends GuiWindow {
+public abstract class MixinGuiCraftingWindow extends GuiWindow {
 
     @Unique
-    private GuiQioRecipePickerElement polymek$picker;
+    private GuiQIORecipePickerElement polymek$picker;
 
-    protected GuiCraftingWindowMixin(IGuiWrapper gui, int x, int y, int width, int height, SelectedWindowData data) {
+    protected MixinGuiCraftingWindow(IGuiWrapper gui, int x, int y, int width, int height, SelectedWindowData data) {
         super(gui, x, y, width, height, data);
     }
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void polymek$attachPicker(IGuiWrapper gui, int x, int y, QIOItemViewerContainer container,
                                       SelectedWindowData windowData, CallbackInfo callback) {
-        polymek$picker = addChild(new GuiQioRecipePickerElement((GuiCraftingWindow) (Object) this));
+        polymek$picker = addChild(new GuiQIORecipePickerElement((GuiCraftingWindow) (Object) this));
     }
 
     @Override

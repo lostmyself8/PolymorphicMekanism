@@ -5,7 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 /** Keeps one QIO workbench's recipe choice attached to its native inventory rather than to a player. */
-public interface QioCraftingTarget extends RecipeTarget {
+public interface QIOCraftingTarget extends RecipeTarget {
 
     /** Restores a saved choice before native recipe recalculation, without writing the inventory again. */
     void polymek$restoreRecipe(@Nullable ResourceLocation recipeId);

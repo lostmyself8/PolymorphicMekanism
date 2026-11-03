@@ -6,20 +6,24 @@ import mekanism.client.gui.IGuiWrapper;
 import mekanism.client.gui.qio.GuiQIOItemViewer;
 import org.jetbrains.annotations.Nullable;
 
-/** Registers one context-aware Polymorph widget for both kinds of QIO dashboard. */
-public final class QioClientIntegration {
+/**
+ * Registers one context-aware Polymorph widget for both kinds of QIO dashboard.
+ */
+public final class QIOClientIntegration {
 
-    private QioClientIntegration() {
+    private QIOClientIntegration() {
     }
 
     public static void register() {
         PolymorphWidgets.getInstance().registerWidget(screen -> screen instanceof GuiQIOItemViewer<?> qio
-              ? new QioRecipesWidgetImpl(qio) : null);
+                ? new QIORecipesWidgetImpl(qio) : null);
     }
 
-    /** Resolves the current screen's coordinator after native window transfer; it is absent before widget initialization. */
-    public static @Nullable QioNativeRecipeView nativeView(IGuiWrapper gui) {
+    /**
+     * Resolves the current screen's coordinator after native window transfer; it is absent before widget initialization.
+     */
+    public static @Nullable QIORecipesWidget recipesWidget(IGuiWrapper gui) {
         IRecipesWidget current = PolymorphWidgets.getInstance().getCurrentWidget();
-        return current instanceof QioNativeRecipeView view && view.isFor(gui) ? view : null;
+        return current instanceof QIORecipesWidget view && view.isFor(gui) ? view : null;
     }
 }

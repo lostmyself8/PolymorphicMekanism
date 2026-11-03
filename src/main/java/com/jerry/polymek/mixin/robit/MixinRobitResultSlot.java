@@ -1,6 +1,6 @@
 package com.jerry.polymek.mixin.robit;
 
-import com.jerry.polymek.compat.robit.RobitCraftingAccess;
+import com.jerry.polymek.compat.robit.RobitCraftingTarget;
 import mekanism.common.inventory.container.entity.robit.CraftingRobitContainer;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Player;
@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
  * Uses the selected recipe's remainders when vanilla ResultSlot consumes a Robit crafting grid.
  */
 @Mixin(ResultSlot.class)
-public abstract class RobitResultSlotMixin {
+public abstract class MixinRobitResultSlot {
 
     @Shadow
     @Final
@@ -33,7 +33,7 @@ public abstract class RobitResultSlotMixin {
     private NonNullList<ItemStack> polymek$selectedRobitRemainders(RecipeManager recipes,
                                                                    RecipeType<CraftingRecipe> type, RecipeInput input, Level level) {
         if (player.containerMenu instanceof CraftingRobitContainer && input instanceof CraftingInput crafting) {
-            return ((RobitCraftingAccess) player.containerMenu).polymek$craftingRecipe(crafting, level)
+            return ((RobitCraftingTarget) player.containerMenu).polymek$craftingRecipe(crafting, level)
                     .map(holder -> holder.value().getRemainingItems(crafting))
                     .orElseGet(() -> NonNullList.withSize(crafting.size(), ItemStack.EMPTY));
         }

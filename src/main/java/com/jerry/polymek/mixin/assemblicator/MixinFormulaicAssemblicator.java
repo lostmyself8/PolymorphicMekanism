@@ -1,10 +1,10 @@
 package com.jerry.polymek.mixin.assemblicator;
 
+import com.jerry.polymek.PolymorphicMekanism;
 import com.jerry.polymek.common.registries.PolymekDataComponents;
 import com.jerry.polymek.common.recipe.RecipeOption;
 import com.jerry.polymek.common.recipe.RecipeOptions;
 import com.jerry.polymek.common.recipe.RecipeTarget;
-import com.mojang.logging.LogUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +30,6 @@ import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -45,12 +44,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Preserves native crafting, energy, and remainder handling while selecting exact recipe identities.
  */
 @Mixin(value = TileEntityFormulaicAssemblicator.class, remap = false)
-public abstract class FormulaicAssemblicatorMixin implements RecipeTarget {
+public abstract class MixinFormulaicAssemblicator implements RecipeTarget {
 
     @Unique
-    private static final Logger POLYMEK_LOG = LogUtils.getLogger();
-    @Unique
-    private static final String POLYMEK_RECIPE_TAG = "polymek:selected_recipe";
+    private static final String polymek$SELECTED_RECIPE_TAG = "polymek:selected_recipe";
     @Unique
     private @Nullable ResourceLocation polymek$selected;
     @Unique
@@ -189,7 +186,7 @@ public abstract class FormulaicAssemblicatorMixin implements RecipeTarget {
                 operatingTicks = 0;
                 formula = RecipeFormula.EMPTY;
                 if (!selected.equals(polymek$lastRejected)) {
-                    POLYMEK_LOG.warn("Assemblicator {} stopped: encoded recipe {} is missing or does not match its formula", polymek$tile().getBlockPos(), selected);
+                    PolymorphicMekanism.LOGGER.warn("Assemblicator {} stopped: encoded recipe {} is missing or does not match its formula", polymek$tile().getBlockPos(), selected);
                     polymek$lastRejected = selected;
                 }
                 callback.cancel();
@@ -199,7 +196,7 @@ public abstract class FormulaicAssemblicatorMixin implements RecipeTarget {
         } else if (attachment.isEmpty() && polymek$selected != null) {
             CraftingInput input = MekanismUtils.getCraftingInputSlots(3, 3, craftingGridSlots, true).input();
             if (polymek$exact(level, input, polymek$selected) == null && !ItemStack.listMatches(polymek$selectedInput, polymek$copyInput())) {
-                POLYMEK_LOG.debug("Assemblicator {} cleared manual recipe {} because it no longer matches its input",
+                PolymorphicMekanism.LOGGER.debug("Assemblicator {} cleared manual recipe {} because it no longer matches its input",
                         polymek$tile().getBlockPos(), polymek$selected);
                 polymek$selected = null;
                 polymek$selectedInput = List.of();
@@ -261,7 +258,7 @@ public abstract class FormulaicAssemblicatorMixin implements RecipeTarget {
 
     @Inject(method = "loadAdditional", at = @At("TAIL"))
     private void polymek$readSelection(CompoundTag nbt, HolderLookup.Provider provider, CallbackInfo callback) {
-        polymek$selected = nbt.contains(POLYMEK_RECIPE_TAG) ? ResourceLocation.parse(nbt.getString(POLYMEK_RECIPE_TAG)) : null;
+        polymek$selected = nbt.contains(polymek$SELECTED_RECIPE_TAG) ? ResourceLocation.parse(nbt.getString(polymek$SELECTED_RECIPE_TAG)) : null;
         polymek$selectedInput = polymek$selected == null ? List.of() : polymek$copyInput();
     }
 
@@ -275,7 +272,7 @@ public abstract class FormulaicAssemblicatorMixin implements RecipeTarget {
     @Inject(method = "saveAdditional", at = @At("TAIL"))
     private void polymek$writeSelection(CompoundTag nbt, HolderLookup.Provider provider, CallbackInfo callback) {
         if (polymek$selected != null) {
-            nbt.putString(POLYMEK_RECIPE_TAG, polymek$selected.toString());
+            nbt.putString(polymek$SELECTED_RECIPE_TAG, polymek$selected.toString());
         }
     }
 }

@@ -1,10 +1,10 @@
 package com.jerry.polymek.mixin.qio;
 
+import com.jerry.polymek.PolymorphicMekanism;
 import com.jerry.polymek.common.recipe.RecipeOption;
 import com.jerry.polymek.common.recipe.RecipeOptions;
-import com.jerry.polymek.compat.qio.QioCraftingTarget;
-import com.jerry.polymek.compat.qio.QioSelectionStorage;
-import com.mojang.logging.LogUtils;
+import com.jerry.polymek.compat.qio.QIOCraftingTarget;
+import com.jerry.polymek.compat.qio.QIOSelectionStorage;
 
 import java.util.List;
 
@@ -19,7 +19,6 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -33,10 +32,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Replaces only recipe resolution; Mekanism retains crafting, replacement, remainder and shift-click logic.
  */
 @Mixin(value = QIOCraftingWindow.class, remap = false)
-public abstract class QioCraftingWindowMixin implements QioCraftingTarget {
+public abstract class MixinQIOCraftingWindow implements QIOCraftingTarget {
 
-    @Unique
-    private static final Logger polymek$LOGGER = LogUtils.getLogger();
     @Shadow
     @Final
     private IQIOCraftingWindowHolder holder;
@@ -89,7 +86,7 @@ public abstract class QioCraftingWindowMixin implements QioCraftingTarget {
             throw new IllegalStateException("Cannot change a QIO recipe during crafting");
         }
         polymek$restoreRecipe(id);
-        ((QioSelectionStorage) holder).polymek$storeRecipe(windowIndex, id);
+        ((QIOSelectionStorage) holder).polymek$storeRecipe(windowIndex, id);
         invalidateRecipe();
     }
 
@@ -125,7 +122,7 @@ public abstract class QioCraftingWindowMixin implements QioCraftingTarget {
         // A missing/reloaded recipe remains visibly locked; only an actual material edit releases a known recipe.
         if (!input.isEmpty() && resolved != null && resolved.value() instanceof CraftingRecipe recipe && !recipe.matches(input, level)) {
             polymek$restoreRecipe(null);
-            ((QioSelectionStorage) holder).polymek$storeRecipe(windowIndex, null);
+            ((QIOSelectionStorage) holder).polymek$storeRecipe(windowIndex, null);
         }
     }
 
@@ -152,7 +149,7 @@ public abstract class QioCraftingWindowMixin implements QioCraftingTarget {
             lastRecipe = null;
             outputSlot.setEmpty();
             if (!polymek$invalidReported) {
-                polymek$LOGGER.warn("QIO workbench {} cannot craft selected recipe {}; choose a recipe matching its current inputs", windowIndex, selected);
+                PolymorphicMekanism.LOGGER.warn("QIO workbench {} cannot craft selected recipe {}; choose a recipe matching its current inputs", windowIndex, selected);
                 polymek$invalidReported = true;
             }
         }

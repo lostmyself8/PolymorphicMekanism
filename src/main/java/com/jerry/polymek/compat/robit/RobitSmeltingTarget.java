@@ -3,8 +3,8 @@ package com.jerry.polymek.compat.robit;
 import com.jerry.polymek.common.recipe.RecipeTarget;
 import org.jetbrains.annotations.Nullable;
 
-/** Entity-owned selection access used to preserve a Robit's furnace when it becomes an item. */
-public interface RobitSmeltingAccess extends RecipeTarget {
+/** Entity-owned furnace selection target whose choice remains attached when a Robit becomes an item. */
+public interface RobitSmeltingTarget extends RecipeTarget {
 
     /** Returns the explicit locked selection, or null when the furnace uses its ordinary recipe lookup. */
     @Nullable RobitSmeltingChoice polymek$smeltingChoice();

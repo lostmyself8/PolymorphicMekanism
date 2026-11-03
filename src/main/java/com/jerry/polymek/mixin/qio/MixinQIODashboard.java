@@ -1,8 +1,8 @@
 package com.jerry.polymek.mixin.qio;
 
 import com.jerry.polymek.common.registries.PolymekDataComponents;
-import com.jerry.polymek.compat.qio.QioCraftingTarget;
-import com.jerry.polymek.compat.qio.QioSelectionStorage;
+import com.jerry.polymek.compat.qio.QIOCraftingTarget;
+import com.jerry.polymek.compat.qio.QIOSelectionStorage;
 import mekanism.common.content.qio.QIOCraftingWindow;
 import mekanism.common.tile.qio.TileEntityQIOComponent;
 import mekanism.common.tile.qio.TileEntityQIODashboard;
@@ -27,15 +27,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Persists block dashboard choices through normal saves and Mekanism's sustained block-item data.
  */
 @Mixin(value = TileEntityQIODashboard.class, remap = false)
-public abstract class QioDashboardMixin extends TileEntityQIOComponent implements QioSelectionStorage {
+public abstract class MixinQIODashboard extends TileEntityQIOComponent implements QIOSelectionStorage {
 
     @Unique
-    private static final String polymek$KEY = "polymek_qio_recipes";
+    private static final String polymek$SELECTED_RECIPES_TAG = "polymek_qio_recipes";
 
     @Shadow
     public abstract QIOCraftingWindow[] getCraftingWindows();
 
-    protected QioDashboardMixin(Holder<Block> blockProvider, BlockPos position, BlockState state) {
+    protected MixinQIODashboard(Holder<Block> blockProvider, BlockPos position, BlockState state) {
         super(blockProvider, position, state);
     }
 
@@ -49,24 +49,24 @@ public abstract class QioDashboardMixin extends TileEntityQIOComponent implement
         CompoundTag choices = new CompoundTag();
         QIOCraftingWindow[] windows = getCraftingWindows();
         for (int index = 0; index < windows.length; index++) {
-            ResourceLocation selected = ((QioCraftingTarget) windows[index]).polymek$selectedRecipe();
+            ResourceLocation selected = ((QIOCraftingTarget) windows[index]).polymek$selectedRecipe();
             if (selected != null) {
                 choices.putString(Integer.toString(index), selected.toString());
             }
         }
         if (!choices.isEmpty()) {
-            tag.put(polymek$KEY, choices);
+            tag.put(polymek$SELECTED_RECIPES_TAG, choices);
         }
     }
 
     @Inject(method = "readSustainedData", at = @At("TAIL"))
     private void polymek$loadChoices(HolderLookup.Provider provider, CompoundTag tag, CallbackInfo callback) {
-        CompoundTag choices = tag.getCompound(polymek$KEY);
+        CompoundTag choices = tag.getCompound(polymek$SELECTED_RECIPES_TAG);
         QIOCraftingWindow[] windows = getCraftingWindows();
         for (int index = 0; index < windows.length; index++) {
             String key = Integer.toString(index);
             ResourceLocation selected = choices.contains(key) ? ResourceLocation.parse(choices.getString(key)) : null;
-            ((QioCraftingTarget) windows[index]).polymek$restoreRecipe(selected);
+            ((QIOCraftingTarget) windows[index]).polymek$restoreRecipe(selected);
         }
     }
 
@@ -74,7 +74,7 @@ public abstract class QioDashboardMixin extends TileEntityQIOComponent implement
     private void polymek$collectChoices(DataComponentMap.Builder builder, CallbackInfo callback) {
         QIOCraftingWindow[] windows = getCraftingWindows();
         for (int index = 0; index < windows.length; index++) {
-            ResourceLocation selected = ((QioCraftingTarget) windows[index]).polymek$selectedRecipe();
+            ResourceLocation selected = ((QIOCraftingTarget) windows[index]).polymek$selectedRecipe();
             if (selected != null) {
                 builder.set(PolymekDataComponents.qioRecipeComponent(index), selected);
             }
@@ -85,7 +85,7 @@ public abstract class QioDashboardMixin extends TileEntityQIOComponent implement
     private void polymek$applyChoices(BlockEntity.DataComponentInput input, CallbackInfo callback) {
         QIOCraftingWindow[] windows = getCraftingWindows();
         for (int index = 0; index < windows.length; index++) {
-            ((QioCraftingTarget) windows[index]).polymek$restoreRecipe(input.get(PolymekDataComponents.qioRecipeComponent(index)));
+            ((QIOCraftingTarget) windows[index]).polymek$restoreRecipe(input.get(PolymekDataComponents.qioRecipeComponent(index)));
             windows[index].invalidateRecipe();
         }
     }

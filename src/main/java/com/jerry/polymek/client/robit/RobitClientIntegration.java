@@ -5,9 +5,9 @@ import mekanism.client.gui.robit.GuiRobitCrafting;
 import mekanism.client.gui.robit.GuiRobitSmelting;
 
 /** Selects Robit-specific widgets before Polymorph's generic ResultContainer detection. */
-public final class RobitWidgets {
+public final class RobitClientIntegration {
 
-    private RobitWidgets() {
+    private RobitClientIntegration() {
     }
 
     /** Registers only the two Robit screens whose native recipe paths are adapted by this module. */

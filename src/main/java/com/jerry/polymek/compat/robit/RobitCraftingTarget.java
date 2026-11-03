@@ -8,7 +8,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 
 /** A menu-local workbench selection, deliberately isolated from another player's Robit menu. */
-public interface RobitCraftingAccess extends RecipeTarget {
+public interface RobitCraftingTarget extends RecipeTarget {
 
     /** Resolves both the crafting result and remainders against the same selected recipe. */
     Optional<RecipeHolder<CraftingRecipe>> polymek$craftingRecipe(CraftingInput input, Level level);

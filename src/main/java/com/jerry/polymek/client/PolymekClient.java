@@ -1,11 +1,9 @@
 package com.jerry.polymek.client;
 
-import com.illusivesoulworks.polymorph.api.client.PolymorphWidgets;
 import com.jerry.polymek.PolymorphicMekanism;
-import com.jerry.polymek.client.assemblicator.AssemblicatorRecipesWidget;
-import com.jerry.polymek.compat.qio.QioIntegration;
-import com.jerry.polymek.compat.robit.RobitIntegration;
-import mekanism.common.inventory.container.tile.FormulaicAssemblicatorContainer;
+import com.jerry.polymek.client.assemblicator.AssemblicatorClientIntegration;
+import com.jerry.polymek.client.qio.QIOClientIntegration;
+import com.jerry.polymek.client.robit.RobitClientIntegration;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -21,10 +19,9 @@ public final class PolymekClient {
 
     private void setup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
-            PolymorphWidgets.getInstance().registerWidget(screen -> screen.getMenu() instanceof FormulaicAssemblicatorContainer menu
-                    ? new AssemblicatorRecipesWidget(screen, menu) : null);
-            QioIntegration.registerClient();
-            RobitIntegration.registerClient();
+            AssemblicatorClientIntegration.register();
+            QIOClientIntegration.register();
+            RobitClientIntegration.register();
         });
     }
 }

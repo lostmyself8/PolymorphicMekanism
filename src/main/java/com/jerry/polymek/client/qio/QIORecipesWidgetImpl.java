@@ -2,7 +2,7 @@ package com.jerry.polymek.client.qio;
 
 import com.jerry.polymek.client.recipe.ContextualRecipesWidget;
 import com.jerry.polymek.common.recipe.RecipeTargetKey;
-import com.jerry.polymek.compat.qio.QioIntegration;
+import com.jerry.polymek.compat.qio.QIOIntegration;
 import java.util.ArrayList;
 import java.util.List;
 import mekanism.client.gui.IGuiWrapper;
@@ -16,12 +16,12 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /** Routes the selector and JEI recipe choice to the focused, live QIO workbench, including moved windows. */
-public final class QioRecipesWidgetImpl extends ContextualRecipesWidget implements QioNativeRecipeView {
+public final class QIORecipesWidgetImpl extends ContextualRecipesWidget implements QIORecipesWidget {
 
     private final GuiQIOItemViewer<?> screen;
     private @Nullable GuiCraftingWindow presentedWindow;
 
-    public QioRecipesWidgetImpl(GuiQIOItemViewer<?> screen) {
+    public QIORecipesWidgetImpl(GuiQIOItemViewer<?> screen) {
         super(screen);
         this.screen = screen;
     }
@@ -37,7 +37,7 @@ public final class QioRecipesWidgetImpl extends ContextualRecipesWidget implemen
               || !screen.getWindows().contains(window)) {
             return null;
         }
-        return new RecipeTargetKey(QioIntegration.KIND, index);
+        return new RecipeTargetKey(QIOIntegration.KIND, index);
     }
 
     @Override

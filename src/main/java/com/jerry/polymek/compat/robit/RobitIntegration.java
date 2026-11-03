@@ -1,7 +1,6 @@
 package com.jerry.polymek.compat.robit;
 
 import com.jerry.polymek.PolymorphicMekanism;
-import com.jerry.polymek.client.robit.RobitWidgets;
 import com.jerry.polymek.common.recipe.RecipeTargets;
 import mekanism.api.security.IEntitySecurityUtils;
 import mekanism.common.entity.EntityRobit;
@@ -24,7 +23,7 @@ public final class RobitIntegration {
     public static void registerCommon() {
         RecipeTargets.register(CRAFTING, (player, menu, index) -> {
             if (index == 0 && menu instanceof CraftingRobitContainer crafting && canAccess(player, crafting.getEntity())) {
-                return (RobitCraftingAccess) crafting;
+                return (RobitCraftingTarget) crafting;
             }
             return null;
         });
@@ -32,15 +31,10 @@ public final class RobitIntegration {
             if (index == 0 && menu instanceof RobitContainer furnace
                   && furnace.getType() == MekanismContainerTypes.SMELTING_ROBIT.get()
                   && canAccess(player, furnace.getEntity())) {
-                return (RobitSmeltingAccess) furnace.getEntity();
+                return (RobitSmeltingTarget) furnace.getEntity();
             }
             return null;
         });
-    }
-
-    /** Called only by the client initialization path; uses Polymorph's existing screen integration. */
-    public static void registerClient() {
-        RobitWidgets.register();
     }
 
     private static boolean canAccess(ServerPlayer player, EntityRobit robit) {

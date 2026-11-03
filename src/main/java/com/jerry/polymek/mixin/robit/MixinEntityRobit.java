@@ -1,8 +1,9 @@
 package com.jerry.polymek.mixin.robit;
 
+import com.jerry.polymek.PolymorphicMekanism;
 import com.jerry.polymek.common.recipe.RecipeOption;
 import com.jerry.polymek.common.registries.PolymekDataComponents;
-import com.jerry.polymek.compat.robit.RobitSmeltingAccess;
+import com.jerry.polymek.compat.robit.RobitSmeltingTarget;
 import com.jerry.polymek.compat.robit.RobitSmeltingChoice;
 
 import java.util.List;
@@ -18,8 +19,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -33,12 +32,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Keeps furnace selection on its owning entity while retaining Mekanism's complete processing path.
  */
 @Mixin(value = EntityRobit.class, remap = false)
-public abstract class EntityRobitMixin implements RobitSmeltingAccess {
+public abstract class MixinEntityRobit implements RobitSmeltingTarget {
 
     @Unique
-    private static final String POLYMEK_SMELTING = "polymek_smelting_choice";
-    @Unique
-    private static final Logger POLYMEK_LOG = LoggerFactory.getLogger("polymek.robit");
+    private static final String polymek$SMELTING_CHOICE_TAG = "polymek_smelting_choice";
 
     @Shadow
     @Final
@@ -141,7 +138,7 @@ public abstract class EntityRobitMixin implements RobitSmeltingAccess {
 
     @Unique
     private void polymek$invalidateProcessing() {
-        RobitRecipeCacheAccess cache = (RobitRecipeCacheAccess) recipeCacheLookupMonitor;
+        MixinRobitRecipeCacheAccess cache = (MixinRobitRecipeCacheAccess) recipeCacheLookupMonitor;
         cache.polymek$setCachedRecipe(null);
         cache.polymek$setHasNoRecipe(false);
         cache.polymek$setShouldUnpause(true);
@@ -174,7 +171,7 @@ public abstract class EntityRobitMixin implements RobitSmeltingAccess {
             if (recipe == null && !smeltingInputSlot.isEmpty()
                     && !polymek$choice.recipe().equals(polymek$reportedInvalidRecipe)) {
                 polymek$reportedInvalidRecipe = polymek$choice.recipe();
-                POLYMEK_LOG.warn("Robit {} stopped: selected smelting recipe {} no longer matches its material",
+                PolymorphicMekanism.LOGGER.warn("Robit {} stopped: selected smelting recipe {} no longer matches its material",
                         ((EntityRobit) (Object) this).getUUID(), polymek$choice.recipe());
             }
             callback.setReturnValue(recipe);
@@ -186,8 +183,8 @@ public abstract class EntityRobitMixin implements RobitSmeltingAccess {
         if (polymek$choice != null) {
             EntityRobit robit = (EntityRobit) (Object) this;
             RobitSmeltingChoice.CODEC.encodeStart(robit.registryAccess().createSerializationContext(NbtOps.INSTANCE), polymek$choice)
-                    .resultOrPartial(error -> POLYMEK_LOG.error("Cannot save Robit smelting choice: {}", error))
-                    .ifPresent(value -> tag.put(POLYMEK_SMELTING, value));
+                    .resultOrPartial(error -> PolymorphicMekanism.LOGGER.error("Cannot save Robit smelting choice: {}", error))
+                    .ifPresent(value -> tag.put(polymek$SMELTING_CHOICE_TAG, value));
         }
     }
 
@@ -196,10 +193,10 @@ public abstract class EntityRobitMixin implements RobitSmeltingAccess {
         polymek$choice = null;
         polymek$reportedInvalidRecipe = null;
         polymek$lastProcessingMaterial = smeltingInputSlot.getStack().copyWithCount(1);
-        if (tag.contains(POLYMEK_SMELTING)) {
+        if (tag.contains(polymek$SMELTING_CHOICE_TAG)) {
             EntityRobit robit = (EntityRobit) (Object) this;
-            RobitSmeltingChoice.CODEC.parse(robit.registryAccess().createSerializationContext(NbtOps.INSTANCE), tag.get(POLYMEK_SMELTING))
-                    .resultOrPartial(error -> POLYMEK_LOG.error("Cannot load Robit smelting choice: {}", error))
+            RobitSmeltingChoice.CODEC.parse(robit.registryAccess().createSerializationContext(NbtOps.INSTANCE), tag.get(polymek$SMELTING_CHOICE_TAG))
+                    .resultOrPartial(error -> PolymorphicMekanism.LOGGER.error("Cannot load Robit smelting choice: {}", error))
                     .ifPresent(choice -> polymek$choice = choice);
         }
     }

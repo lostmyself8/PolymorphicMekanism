@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Revalidates a Robit result immediately before a player can take it after a recipe reload.
  */
 @Mixin(AbstractContainerMenu.class)
-public abstract class RobitMenuClickMixin {
+public abstract class MixinRobitMenuClick {
 
     @Inject(method = "clicked", at = @At("HEAD"))
     private void polymek$refreshRobitResultBeforeClick(int slot, int button, ClickType clickType,

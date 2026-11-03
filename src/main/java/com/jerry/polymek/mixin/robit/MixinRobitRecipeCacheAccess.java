@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
  * Clears a Robit's real Mekanism processing cache when its selected furnace recipe changes.
  */
 @Mixin(value = RecipeCacheLookupMonitor.class, remap = false)
-public interface RobitRecipeCacheAccess {
+public interface MixinRobitRecipeCacheAccess {
 
     /**
      * Drops the previous processing recipe so an unchanged material can select another output.

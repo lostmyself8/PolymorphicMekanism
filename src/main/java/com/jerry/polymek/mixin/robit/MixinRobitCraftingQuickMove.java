@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Applies the same current-recipe validation to native Robit Shift crafting and direct menu calls.
  */
 @Mixin(CraftingMenu.class)
-public abstract class RobitCraftingQuickMoveMixin {
+public abstract class MixinRobitCraftingQuickMove {
 
     @Inject(method = "quickMoveStack", at = @At("HEAD"))
     private void polymek$refreshRobitResultBeforeQuickMove(Player player, int slot,

@@ -1,8 +1,9 @@
 package com.jerry.polymek.mixin.robit;
 
 import com.illusivesoulworks.polymorph.mixin.core.AccessorCraftingMenu;
+import com.jerry.polymek.PolymorphicMekanism;
 import com.jerry.polymek.common.recipe.RecipeOption;
-import com.jerry.polymek.compat.robit.RobitCraftingAccess;
+import com.jerry.polymek.compat.robit.RobitCraftingTarget;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,8 +19,6 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -27,10 +26,8 @@ import org.spongepowered.asm.mixin.Unique;
  * Selects a workbench recipe independently for each Robit menu and its own actual materials.
  */
 @Mixin(value = CraftingRobitContainer.class, remap = false)
-public abstract class CraftingRobitContainerMixin implements RobitCraftingAccess {
+public abstract class MixinCraftingRobitContainer implements RobitCraftingTarget {
 
-    @Unique
-    private static final Logger POLYMEK_LOG = LoggerFactory.getLogger("polymek.robit");
     @Unique
     @Nullable
     private ResourceLocation polymek$selection;
@@ -93,7 +90,7 @@ public abstract class CraftingRobitContainerMixin implements RobitCraftingAccess
             if (polymek$sameInput(current, polymek$selectionInput)) {
                 if (!polymek$reportedInvalidRecipe) {
                     polymek$reportedInvalidRecipe = true;
-                    POLYMEK_LOG.warn("Robit workbench stopped: selected recipe {} no longer matches its material", polymek$selection);
+                    PolymorphicMekanism.LOGGER.warn("Robit workbench stopped: selected recipe {} no longer matches its material", polymek$selection);
                 }
                 return Optional.empty();
             }

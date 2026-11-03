@@ -6,11 +6,11 @@ import mekanism.common.inventory.container.QIOItemViewerContainer;
 import net.minecraft.resources.ResourceLocation;
 
 /** Registers QIO's three independently persisted targets with the shared selection protocol. */
-public final class QioIntegration {
+public final class QIOIntegration {
 
     public static final ResourceLocation KIND = PolymorphicMekanism.rl("qio");
 
-    private QioIntegration() {
+    private QIOIntegration() {
     }
 
     /** Registers authoritative menu resolution; packets cannot target another user's inactive workbench. */
@@ -20,12 +20,7 @@ public final class QioIntegration {
                   || qio.getSelectedCraftingGrid(player.getUUID()) != index) {
                 return null;
             }
-            return (QioCraftingTarget) qio.getCraftingWindow(index);
+            return (QIOCraftingTarget) qio.getCraftingWindow(index);
         });
-    }
-
-    /** Loads client-only classes only from the client setup path. */
-    public static void registerClient() {
-        com.jerry.polymek.client.qio.QioClientIntegration.register();
     }
 }

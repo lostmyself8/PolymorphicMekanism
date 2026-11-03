@@ -26,14 +26,14 @@ public final class PolymekDataComponents {
 
     /** Keeps each QIO crafting window's persistent recipe choice under its own component. */
     private static final List<MekanismDeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>>> QIO_RECIPES = List.of(
-          registerQioRecipe(0), registerQioRecipe(1), registerQioRecipe(2));
+          registerQIORecipe(0), registerQIORecipe(1), registerQIORecipe(2));
 
     /** Returns the persisted recipe component belonging to one of QIO's three crafting windows. */
     public static DataComponentType<ResourceLocation> qioRecipeComponent(int index) {
         return QIO_RECIPES.get(index).get();
     }
 
-    private static MekanismDeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> registerQioRecipe(int index) {
+    private static MekanismDeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> registerQIORecipe(int index) {
         return DATA_COMPONENTS.simple("qio_recipe_" + index,
               builder -> builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC));
     }

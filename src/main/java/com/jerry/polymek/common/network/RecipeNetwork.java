@@ -5,7 +5,6 @@ import com.jerry.polymek.common.recipe.RecipeOption;
 import com.jerry.polymek.common.recipe.RecipeTarget;
 import com.jerry.polymek.common.recipe.RecipeTargetKey;
 import com.jerry.polymek.common.recipe.RecipeTargets;
-import com.mojang.logging.LogUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,12 +15,10 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
 /** Validates access and current inputs in one server task before permitting any native recipe mutation. */
 public final class RecipeNetwork {
 
-    private static final Logger LOGGER = LogUtils.getLogger();
     private static final Map<ServerPlayer, QueryStamp> LAST_QUERY = new WeakHashMap<>();
 
     private RecipeNetwork() {
@@ -49,12 +46,12 @@ public final class RecipeNetwork {
         AbstractContainerMenu menu = player.containerMenu;
         if (menu.containerId != containerId || !menu.stillValid(player)
                 || menu instanceof ISecurityContainer secured && !secured.canPlayerAccess(player)) {
-            LOGGER.warn("Rejected recipe context {} in menu {} for {}", key, containerId, player.getUUID());
+            PolymorphicMekanism.LOGGER.warn("Rejected recipe context {} in menu {} for {}", key, containerId, player.getUUID());
             return null;
         }
         RecipeTarget target = RecipeTargets.resolve(player, menu, key);
         if (target == null) {
-            LOGGER.warn("Rejected unknown or unauthorized recipe target {} in menu {} for {}", key, containerId, player.getUUID());
+            PolymorphicMekanism.LOGGER.warn("Rejected unknown or unauthorized recipe target {} in menu {} for {}", key, containerId, player.getUUID());
         }
         return target;
     }
@@ -84,7 +81,7 @@ public final class RecipeNetwork {
             target.polymek$selectRecipe(packet.recipe());
             player.containerMenu.broadcastChanges();
         } else {
-            LOGGER.warn("Rejected non-matching or locked recipe {} for target {} in menu {} for {}", packet.recipe(), packet.target(), packet.containerId(), player.getUUID());
+            PolymorphicMekanism.LOGGER.warn("Rejected non-matching or locked recipe {} for target {} in menu {} for {}", packet.recipe(), packet.target(), packet.containerId(), player.getUUID());
         }
         sendSnapshot(player, packet.containerId(), packet.target(), target);
         return accepted;
