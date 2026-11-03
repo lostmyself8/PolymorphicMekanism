@@ -6,6 +6,7 @@ import com.jerry.polymek.common.recipe.RecipeOption;
 import com.jerry.polymek.common.recipe.RecipeOptions;
 import com.jerry.polymek.common.recipe.RecipeTarget;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -109,6 +110,14 @@ public abstract class MixinFormulaicAssemblicator implements RecipeTarget {
         return level.getRecipeManager().getRecipesFor(RecipeType.CRAFTING, input, level).stream()
                 .filter(holder -> holder.id().equals(selected) && (holder.value().isSpecial() || !holder.value().isIncomplete()))
                 .findFirst().orElse(null);
+    }
+
+    @Override
+    public List<ItemStack> polymek$inputStacks() {
+        List<ItemStack> inputs = new ArrayList<>(10);
+        inputs.add(formulaSlot.getStack().copy());
+        inputs.addAll(polymek$copyInput());
+        return List.copyOf(inputs);
     }
 
     @Override

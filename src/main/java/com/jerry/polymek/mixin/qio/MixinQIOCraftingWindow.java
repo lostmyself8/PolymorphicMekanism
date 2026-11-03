@@ -7,12 +7,14 @@ import com.jerry.polymek.compat.qio.QIOCraftingTarget;
 import com.jerry.polymek.compat.qio.QIOSelectionStorage;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import mekanism.api.inventory.IInventorySlot;
 import mekanism.common.content.qio.IQIOCraftingWindowHolder;
 import mekanism.common.content.qio.QIOCraftingWindow;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -63,6 +65,12 @@ public abstract class MixinQIOCraftingWindow implements QIOCraftingTarget {
 
     @Shadow
     public abstract void invalidateRecipe();
+
+    @Override
+    public List<ItemStack> polymek$inputStacks() {
+        QIOCraftingWindow window = (QIOCraftingWindow) (Object) this;
+        return IntStream.range(0, 9).mapToObj(index -> window.getInputSlot(index).getStack().copy()).toList();
+    }
 
     @Override
     public List<RecipeOption> polymek$options() {

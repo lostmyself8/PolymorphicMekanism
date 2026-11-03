@@ -33,10 +33,11 @@ public abstract class ContextualRecipesWidget extends AbstractRecipesWidget impl
     private final Consumer<RecipeSnapshot> snapshotReceiver = this::acceptSnapshot;
     private @Nullable RecipeTargetKey lastTarget;
     private List<ItemStack> lastInput = List.of();
+    private @Nullable RecipeSnapshot acceptedSnapshot;
     private boolean initialized;
     private boolean dirty = true;
     private boolean editable;
-    private int ticksSinceQuery;
+    private int ticksSinceQuery = 20;
 
     protected ContextualRecipesWidget(AbstractContainerScreen<?> screen) {
         super(screen);
@@ -53,22 +54,56 @@ public abstract class ContextualRecipesWidget extends AbstractRecipesWidget impl
         return true;
     }
 
-    /** Closes the popup as well as hiding its button so suppressed views cannot keep or restore stale hit boxes. */
+    /** Rejects changed materials on every frame and hit test while keeping count-only refreshes visually stable. */
     protected final boolean enforcePickerPresentation() {
         if (!initialized) {
             return false;
         }
-        if (mayPresentPicker()) {
-            return true;
+        RecipeTargetKey key = refreshContext();
+        boolean present = key != null && acceptedSnapshot != null
+                && acceptedSnapshot.matchesPresentationContext(containerScreen.getMenu().containerId, key, lastInput)
+                && acceptedSnapshot.requiresChoice() && mayPresentPicker();
+        openButton.visible = present;
+        openButton.active = present && editable;
+        if (!present || !editable) {
+            selectionWidget.setActive(false);
         }
+        return present;
+    }
+
+    /** Refreshes exact inputs immediately, preserving presentation only while the materials and target still match. */
+    private @Nullable RecipeTargetKey refreshContext() {
+        RecipeTargetKey key = targetKey();
+        List<ItemStack> input = key == null ? List.of() : inputStacks();
+        if (!Objects.equals(key, lastTarget) || !ItemStack.listMatches(lastInput, input)) {
+            lastTarget = key;
+            lastInput = input.stream().map(ItemStack::copy).toList();
+            if (key != null && acceptedSnapshot != null
+                    && acceptedSnapshot.matchesPresentationContext(containerScreen.getMenu().containerId, key, lastInput)) {
+                dirty = true;
+                ticksSinceQuery = 20;
+            } else {
+                invalidatePicker();
+            }
+        }
+        return key;
+    }
+
+    private void invalidatePicker() {
+        acceptedSnapshot = null;
+        editable = false;
+        dirty = true;
+        ticksSinceQuery = 20;
+        super.setRecipesList(Set.of(), null);
         openButton.visible = false;
+        openButton.active = false;
         selectionWidget.setActive(false);
-        return false;
     }
 
     /** Prevents native views from presenting the previous window's snapshot before the new context is initialized. */
     protected final boolean hasPickerContext(RecipeTargetKey key) {
-        return initialized && key.equals(lastTarget) && key.equals(targetKey());
+        return initialized && key.equals(refreshContext()) && acceptedSnapshot != null
+                && acceptedSnapshot.matchesPresentationContext(containerScreen.getMenu().containerId, key, lastInput);
     }
 
     /** Synchronizes both offsets and real hit boxes immediately; Polymorph's offset setters alone wait until render. */
@@ -83,12 +118,14 @@ public abstract class ContextualRecipesWidget extends AbstractRecipesWidget impl
 
     /** Draws only the picker contents at the caller's existing pose and depth, for native window ownership. */
     protected final void renderPickerContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
+        if (enforcePickerPresentation()) {
+            super.render(graphics, mouseX, mouseY, partialTick);
+        }
     }
 
     /** Handles one picker click after its native owner has established position, focus, and hit testing. */
     protected final void clickPickerContents(double mouseX, double mouseY, int button) {
-        if (editable) {
+        if (enforcePickerPresentation() && editable) {
             super.mouseClicked(mouseX, mouseY, button);
         }
     }
@@ -96,7 +133,10 @@ public abstract class ContextualRecipesWidget extends AbstractRecipesWidget impl
     @Override
     public void initChildWidgets() {
         super.initChildWidgets();
+        openButton = new MekanismOpenSelectionButton(containerScreen, getXPos(), getYPos(),
+                button -> selectionWidget.setActive(!selectionWidget.isActive()));
         initialized = true;
+        invalidatePicker();
         RecipeSnapshots.receiveWith(snapshotReceiver);
         tick();
     }
@@ -106,31 +146,18 @@ public abstract class ContextualRecipesWidget extends AbstractRecipesWidget impl
         if (!initialized || Minecraft.getInstance().screen != containerScreen) {
             return;
         }
-        RecipeTargetKey key = targetKey();
+        RecipeTargetKey key = refreshContext();
         if (key == null) {
-            openButton.visible = false;
-            selectionWidget.setActive(false);
-            lastTarget = null;
             return;
-        }
-        List<ItemStack> input = inputStacks();
-        boolean contextChanged = !key.equals(lastTarget);
-        if (contextChanged || !ItemStack.listMatches(lastInput, input)) {
-            dirty = true;
-            lastInput = input.stream().map(ItemStack::copy).toList();
-        }
-        if (contextChanged) {
-            lastTarget = key;
-            selectionWidget.setActive(false);
-            super.setRecipesList(Set.of(), null);
         }
         resetWidgetOffsets();
         enforcePickerPresentation();
         ticksSinceQuery++;
-        if (dirty || ticksSinceQuery >= 20) {
+        if ((dirty && ticksSinceQuery >= 2) || ticksSinceQuery >= 20) {
             PacketDistributor.sendToServer(new RecipeQueryPayload(containerScreen.getMenu().containerId, key));
             ticksSinceQuery = 0;
-            dirty = false;
+            // A throttled or stale response must not defer a changed input until the next periodic poll.
+            dirty = true;
         }
     }
 
@@ -141,26 +168,26 @@ public abstract class ContextualRecipesWidget extends AbstractRecipesWidget impl
     }
 
     private void acceptSnapshot(RecipeSnapshot snapshot) {
-        if (!initialized || Minecraft.getInstance().screen != containerScreen
-                || snapshot.containerId() != containerScreen.getMenu().containerId
-                || !Objects.equals(snapshot.target(), targetKey())) {
+        if (!initialized || Minecraft.getInstance().screen != containerScreen) {
             return;
         }
+        RecipeTargetKey key = refreshContext();
+        if (key == null || !snapshot.matchesContext(containerScreen.getMenu().containerId, key, lastInput)) {
+            return;
+        }
+        acceptedSnapshot = snapshot;
+        dirty = false;
+        ticksSinceQuery = 0;
+        editable = snapshot.editable();
         Set<IRecipePair> choices = new TreeSet<>();
         snapshot.options().forEach(option -> choices.add(new RecipePair(option.id(), option.output())));
         super.setRecipesList(choices, snapshot.selected().orElse(null));
-        boolean missingSelection = snapshot.selected().isPresent() && snapshot.options().stream()
-                .noneMatch(option -> option.id().equals(snapshot.selected().get()));
-        openButton.visible = enforcePickerPresentation() && (choices.size() > 1 || missingSelection);
+        boolean missingSelection = snapshot.hasMissingSelection();
         ILangEntry tooltip = missingSelection
                 ? (choices.isEmpty() ? PolymekLang.RECIPE_MISSING_NO_MATCH : PolymekLang.RECIPE_MISSING_CHOOSE)
                 : (snapshot.editable() ? PolymekLang.RECIPE_CHOOSE : PolymekLang.RECIPE_LOCKED);
         openButton.setTooltip(Tooltip.create(tooltip.translate()));
-        editable = snapshot.editable();
-        openButton.active = editable;
-        if (!editable) {
-            selectionWidget.setActive(false);
-        }
+        enforcePickerPresentation();
     }
 
     @Override
@@ -174,7 +201,7 @@ public abstract class ContextualRecipesWidget extends AbstractRecipesWidget impl
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        if (targetKey() != null && enforcePickerPresentation()) {
+        if (enforcePickerPresentation()) {
             graphics.pose().pushPose();
             graphics.pose().translate(0, 0, containerScreen instanceof GuiMekanism<?> ? GuiMekanism.maxZOffset + 200 : 200);
             super.render(graphics, mouseX, mouseY, partialTick);
@@ -184,6 +211,6 @@ public abstract class ContextualRecipesWidget extends AbstractRecipesWidget impl
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        return targetKey() != null && enforcePickerPresentation() && editable && super.mouseClicked(mouseX, mouseY, button);
+        return enforcePickerPresentation() && editable && super.mouseClicked(mouseX, mouseY, button);
     }
 }

@@ -68,7 +68,13 @@ public abstract class MixinEntityRobit implements RobitSmeltingTarget {
     }
 
     @Override
+    public List<ItemStack> polymek$inputStacks() {
+        return List.of(smeltingInputSlot.getStack().copy());
+    }
+
+    @Override
     public List<RecipeOption> polymek$options() {
+        polymek$normalizeMaterialContext();
         ItemStack input = smeltingInputSlot.getStack();
         return polymek$matchingRecipes().stream()
                 .map(holder -> new RecipeOption(holder.id(), holder.value().getOutput(input)))
@@ -78,6 +84,7 @@ public abstract class MixinEntityRobit implements RobitSmeltingTarget {
 
     @Override
     public @Nullable ResourceLocation polymek$selectedRecipe() {
+        polymek$normalizeMaterialContext();
         if (smeltingInputSlot.isEmpty()) {
             return null;
         }
@@ -147,20 +154,27 @@ public abstract class MixinEntityRobit implements RobitSmeltingTarget {
     @Inject(method = "tick", at = @At("HEAD"))
     private void polymek$updateMaterialContext(CallbackInfo callback) {
         EntityRobit robit = (EntityRobit) (Object) this;
-        ItemStack input = smeltingInputSlot.getStack();
         if (!robit.level().isClientSide) {
-            if (polymek$choice != null && !input.isEmpty() && !polymek$choice.matchesMaterial(input)) {
-                polymek$choice = null;
-                polymek$reportedInvalidRecipe = null;
-                polymek$resetProcessing();
-            }
-            polymek$lastProcessingMaterial = input.copyWithCount(1);
+            polymek$normalizeMaterialContext();
+            polymek$lastProcessingMaterial = smeltingInputSlot.getStack().copyWithCount(1);
+        }
+    }
+
+    @Unique
+    private void polymek$normalizeMaterialContext() {
+        EntityRobit robit = (EntityRobit) (Object) this;
+        ItemStack input = smeltingInputSlot.getStack();
+        if (!robit.level().isClientSide && polymek$choice != null && !input.isEmpty() && !polymek$choice.matchesMaterial(input)) {
+            polymek$choice = null;
+            polymek$reportedInvalidRecipe = null;
+            polymek$resetProcessing();
         }
     }
 
     @Inject(method = "getRecipe(I)Lmekanism/api/recipes/ItemStackToItemStackRecipe;", at = @At("HEAD"), cancellable = true)
     private void polymek$useSelectedSmeltingRecipe(int cacheIndex,
                                                    CallbackInfoReturnable<ItemStackToItemStackRecipe> callback) {
+        polymek$normalizeMaterialContext();
         if (polymek$choice != null) {
             ItemStackToItemStackRecipe recipe = polymek$matchingRecipes().stream()
                     .filter(holder -> holder.id().equals(polymek$choice.recipe()))

@@ -12,6 +12,7 @@ import java.util.WeakHashMap;
 import mekanism.common.inventory.container.ISecurityContainer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +27,7 @@ public final class RecipeNetwork {
 
     /** Registers common codecs and handlers without loading any client-side screen classes. */
     public static void register(RegisterPayloadHandlersEvent event) {
-        var registrar = event.registrar(PolymorphicMekanism.MOD_ID).versioned("1");
+        var registrar = event.registrar(PolymorphicMekanism.MOD_ID).versioned("2");
         registrar.playToServer(RecipeQueryPayload.TYPE, RecipeQueryPayload.STREAM_CODEC, (packet, context) -> context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {
                 query(player, packet);
@@ -57,16 +58,19 @@ public final class RecipeNetwork {
     }
 
     private static void query(ServerPlayer player, RecipeQueryPayload packet) {
-        QueryStamp stamp = LAST_QUERY.get(player);
-        long tick = player.serverLevel().getGameTime();
-        if (stamp != null && stamp.containerId == packet.containerId() && stamp.target.equals(packet.target()) && tick - stamp.tick < 2) {
+        RecipeTarget target = resolve(player, packet.containerId(), packet.target());
+        if (target == null) {
             return;
         }
-        LAST_QUERY.put(player, new QueryStamp(packet.containerId(), packet.target(), tick));
-        RecipeTarget target = resolve(player, packet.containerId(), packet.target());
-        if (target != null) {
-            sendSnapshot(player, packet.containerId(), packet.target(), target);
+        List<ItemStack> inputs = target.polymek$inputStacks();
+        QueryStamp stamp = LAST_QUERY.get(player);
+        long tick = player.serverLevel().getGameTime();
+        if (stamp != null && stamp.containerId == packet.containerId() && stamp.target.equals(packet.target())
+                && ItemStack.listMatches(stamp.inputs, inputs) && tick - stamp.tick < 2) {
+            return;
         }
+        LAST_QUERY.put(player, new QueryStamp(packet.containerId(), packet.target(), inputs, tick));
+        sendSnapshot(player, packet.containerId(), packet.target(), target);
     }
 
     /** Applies only an option matching the real inputs now, never a previously sent client preview. */
@@ -88,11 +92,15 @@ public final class RecipeNetwork {
     }
 
     private static void sendSnapshot(ServerPlayer player, int containerId, RecipeTargetKey key, RecipeTarget target) {
-        RecipeSnapshot snapshot = new RecipeSnapshot(containerId, key, target.polymek$options(),
+        RecipeSnapshot snapshot = new RecipeSnapshot(containerId, key, target.polymek$inputStacks(), target.polymek$options(),
                 Optional.ofNullable(target.polymek$selectedRecipe()), target.polymek$canSelect());
         PacketDistributor.sendToPlayer(player, new RecipeSnapshotPayload(snapshot));
     }
 
-    private record QueryStamp(int containerId, RecipeTargetKey target, long tick) {
+    private record QueryStamp(int containerId, RecipeTargetKey target, List<ItemStack> inputs, long tick) {
+
+        private QueryStamp {
+            inputs = inputs.stream().map(ItemStack::copy).toList();
+        }
     }
 }
