@@ -5,19 +5,13 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "assemblicator.MixinFormulaicAssemblicator",
-    "assemblicator.MixinItemStack",
     "assemblicator.MixinItemCraftingFormula",
     "qio.MixinQIOCraftingWindow",
     "qio.MixinPortableQIODashboard",
     "qio.MixinQIODashboard",
     "robit.MixinRobitRecipeCacheAccess",
     "robit.MixinEntityRobit",
-    "robit.MixinItemRobit",
-    "robit.MixinCraftingRobitContainer",
-    "robit.MixinPolymorphRobitCrafting",
-    "robit.MixinRobitResultSlot",
-    "robit.MixinRobitMenuClick",
-    "robit.MixinRobitCraftingQuickMove"
+    "robit.MixinItemRobit"
   ],
   "client": [
     "client.qio.MixinGuiCraftingWindow"

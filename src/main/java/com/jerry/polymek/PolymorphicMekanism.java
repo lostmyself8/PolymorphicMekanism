@@ -18,7 +18,7 @@ public class PolymorphicMekanism {
     public static final String MOD_ID = "polymek";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public PolymorphicMekanism(IEventBus modEventBus, ModContainer modContainer) {
+    public PolymorphicMekanism(IEventBus modEventBus) {
         PolymekDataComponents.DATA_COMPONENTS.register(modEventBus);
         modEventBus.addListener(RecipeNetwork::register);
         AssemblicatorIntegration.registerCommon();

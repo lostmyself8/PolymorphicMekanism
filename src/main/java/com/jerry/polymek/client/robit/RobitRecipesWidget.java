@@ -11,36 +11,28 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 
-/** Reuses Polymorph's selector with an explicit workbench or furnace context for this Robit screen. */
+/** Reuses Polymorph's selector for the Robit's furnace recipe context. */
 public final class RobitRecipesWidget extends ContextualRecipesWidget {
 
-    private final boolean crafting;
     private final Slot output;
-    private final List<Slot> inputs;
+    private final Slot input;
 
-    public RobitRecipesWidget(AbstractContainerScreen<?> screen, boolean crafting) {
+    public RobitRecipesWidget(AbstractContainerScreen<?> screen) {
         super(screen);
-        this.crafting = crafting;
-        if (crafting) {
-            output = screen.getMenu().getSlot(0);
-            inputs = List.copyOf(screen.getMenu().slots.subList(1, 10));
-        } else {
-            output = screen.getMenu().slots.stream().filter(slot -> slot.x == 116 && slot.y == 35)
-                  .findFirst().orElseThrow(() -> new IllegalStateException("Robit furnace has no native output slot"));
-            Slot input = screen.getMenu().slots.stream().filter(slot -> slot.x == 51 && slot.y == 35)
-                  .findFirst().orElseThrow(() -> new IllegalStateException("Robit furnace has no native input slot"));
-            inputs = List.of(input);
-        }
+        output = screen.getMenu().slots.stream().filter(slot -> slot.x == 116 && slot.y == 35)
+              .findFirst().orElseThrow(() -> new IllegalStateException("Robit furnace has no native output slot"));
+        input = screen.getMenu().slots.stream().filter(slot -> slot.x == 51 && slot.y == 35)
+              .findFirst().orElseThrow(() -> new IllegalStateException("Robit furnace has no native input slot"));
     }
 
     @Override
     protected RecipeTargetKey targetKey() {
-        return new RecipeTargetKey(crafting ? RobitIntegration.CRAFTING : RobitIntegration.SMELTING, 0);
+        return new RecipeTargetKey(RobitIntegration.SMELTING, 0);
     }
 
     @Override
     protected List<ItemStack> inputStacks() {
-        return inputs.stream().map(Slot::getItem).toList();
+        return List.of(input.getItem());
     }
 
     @Override
@@ -50,7 +42,7 @@ public final class RobitRecipesWidget extends ContextualRecipesWidget {
 
     @Override
     public void selectRecipe(ResourceLocation recipe) {
-        if (!crafting && Minecraft.getInstance().level != null) {
+        if (Minecraft.getInstance().level != null) {
             boolean vanillaSmelting = Minecraft.getInstance().level.getRecipeManager().byKey(recipe)
                   .map(holder -> holder.value().getType() == RecipeType.SMELTING).orElse(false);
             if (vanillaSmelting) {

@@ -4,29 +4,21 @@ import com.jerry.polymek.PolymorphicMekanism;
 import com.jerry.polymek.common.recipe.RecipeTargets;
 import mekanism.api.security.IEntitySecurityUtils;
 import mekanism.common.entity.EntityRobit;
-import mekanism.common.inventory.container.entity.robit.CraftingRobitContainer;
 import mekanism.common.inventory.container.entity.robit.RobitContainer;
 import mekanism.common.registries.MekanismContainerTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
-/** Registers the Robit's distinct menu workbench and entity furnace selection contexts. */
+/** Registers the Robit's entity furnace selection context. */
 public final class RobitIntegration {
 
-    public static final ResourceLocation CRAFTING = PolymorphicMekanism.rl("robit_crafting");
     public static final ResourceLocation SMELTING = PolymorphicMekanism.rl("robit_smelting");
 
     private RobitIntegration() {
     }
 
-    /** Installs server-authoritative factories for the Robit's two recipe contexts. */
+    /** Installs the server-authoritative factory for the Robit's furnace recipe context. */
     public static void registerCommon() {
-        RecipeTargets.register(CRAFTING, (player, menu, index) -> {
-            if (index == 0 && menu instanceof CraftingRobitContainer crafting && canAccess(player, crafting.getEntity())) {
-                return (RobitCraftingTarget) crafting;
-            }
-            return null;
-        });
         RecipeTargets.register(SMELTING, (player, menu, index) -> {
             if (index == 0 && menu instanceof RobitContainer furnace
                   && furnace.getType() == MekanismContainerTypes.SMELTING_ROBIT.get()
