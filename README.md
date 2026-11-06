@@ -1,16 +1,16 @@
 # Polymorphic Mekanism
 
-This is a compatible mod. It Enables [Mekanism](https://www.curseforge.com/minecraft/mc-mods/mekanism)'s Formulaic Assemblicator, QIO, and Robit to use the [Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph) feature.
+**This is a compatible mod. It Enables [Mekanism](https://www.curseforge.com/minecraft/mc-mods/mekanism)'s Formulaic Assemblicator, QIO, and Robit to use the [Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph) feature.**
 
-You can now save and modify conflicting recipes in Formula Assemblicator, but you need to turn off automatic mode first.
+**You can now save and modify conflicting recipes in Formula Assemblicator, but you need to turn off automatic mode first.**
 
 ![image](https://media.forgecdn.net/attachments/description/1781223/description_8c271104-bc2e-43c6-80ca-493ffb6bea11.png)
 
-As is well known, the QIO dashboard can open three GUI like crafting table, which can now freely switch conflicting recipes without interfering with each other.
+**As is well known, the QIO dashboard can open three GUI like crafting table, which can now freely switch conflicting recipes without interfering with each other.**
 
 ![image](https://media.forgecdn.net/attachments/description/1781223/description_d10b336d-4d4b-4d60-a397-c5d19fafcdc9.png)
 
-The robit's crafting table is automatically compatible with Polymorph, so there is no need to make too many adjustments, but it is additionally compatible with the robit's furnace.
+**The robit's crafting table is automatically compatible with Polymorph, so there is no need to make too many adjustments, but it is additionally compatible with the robit's furnace.**
 
 ![image](https://media.forgecdn.net/attachments/description/1781223/description_fe8cfce6-f447-4341-9e38-93dee3b09447.png)
 

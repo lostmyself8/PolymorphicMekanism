@@ -5,6 +5,9 @@ import com.jerry.polymek.common.recipe.RecipeOption;
 import com.jerry.polymek.common.registries.PolymekDataComponents;
 import com.jerry.polymek.compat.robit.RobitSmeltingTarget;
 import com.jerry.polymek.compat.robit.RobitSmeltingChoice;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 
 import java.util.List;
 
@@ -26,7 +29,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Keeps furnace selection on its owning entity while retaining Mekanism's complete processing path.
@@ -171,25 +173,26 @@ public abstract class MixinEntityRobit implements RobitSmeltingTarget {
         }
     }
 
-    @Inject(method = "getRecipe(I)Lmekanism/api/recipes/ItemStackToItemStackRecipe;", at = @At("HEAD"), cancellable = true)
-    private void polymek$useSelectedSmeltingRecipe(int cacheIndex,
-                                                   CallbackInfoReturnable<ItemStackToItemStackRecipe> callback) {
+    @WrapMethod(method = "getRecipe(I)Lmekanism/api/recipes/ItemStackToItemStackRecipe;")
+    private ItemStackToItemStackRecipe polymek$useSelectedSmeltingRecipe(
+            int cacheIndex, Operation<ItemStackToItemStackRecipe> original) {
         polymek$normalizeMaterialContext();
-        if (polymek$choice != null) {
-            ItemStackToItemStackRecipe recipe = polymek$matchingRecipes().stream()
-                    .filter(holder -> holder.id().equals(polymek$choice.recipe()))
-                    .map(RecipeHolder::value).findFirst().orElse(null);
-            if (recipe != null) {
-                polymek$reportedInvalidRecipe = null;
-            }
-            if (recipe == null && !smeltingInputSlot.isEmpty()
-                    && !polymek$choice.recipe().equals(polymek$reportedInvalidRecipe)) {
-                polymek$reportedInvalidRecipe = polymek$choice.recipe();
-                PolymorphicMekanism.LOGGER.warn("Robit {} stopped: selected smelting recipe {} no longer matches its material",
-                        ((EntityRobit) (Object) this).getUUID(), polymek$choice.recipe());
-            }
-            callback.setReturnValue(recipe);
+        if (polymek$choice == null) {
+            return original.call(cacheIndex);
         }
+        ItemStackToItemStackRecipe recipe = polymek$matchingRecipes().stream()
+                .filter(holder -> holder.id().equals(polymek$choice.recipe()))
+                .map(RecipeHolder::value).findFirst().orElse(null);
+        if (recipe != null) {
+            polymek$reportedInvalidRecipe = null;
+        }
+        if (recipe == null && !smeltingInputSlot.isEmpty()
+                && !polymek$choice.recipe().equals(polymek$reportedInvalidRecipe)) {
+            polymek$reportedInvalidRecipe = polymek$choice.recipe();
+            PolymorphicMekanism.LOGGER.warn("Robit {} stopped: selected smelting recipe {} no longer matches its material",
+                    ((EntityRobit) (Object) this).getUUID(), polymek$choice.recipe());
+        }
+        return recipe;
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
@@ -215,10 +218,11 @@ public abstract class MixinEntityRobit implements RobitSmeltingTarget {
         }
     }
 
-    @Inject(method = "getItemVariant", at = @At("RETURN"))
-    private void polymek$savePickedSmeltingChoice(CallbackInfoReturnable<ItemStack> callback) {
+    @ModifyReturnValue(method = "getItemVariant", at = @At("RETURN"))
+    private ItemStack polymek$savePickedSmeltingChoice(ItemStack stack) {
         if (polymek$choice != null) {
-            callback.getReturnValue().set(PolymekDataComponents.ROBIT_SMELTING_CHOICE.get(), polymek$choice);
+            stack.set(PolymekDataComponents.ROBIT_SMELTING_CHOICE.get(), polymek$choice);
         }
+        return stack;
     }
 }

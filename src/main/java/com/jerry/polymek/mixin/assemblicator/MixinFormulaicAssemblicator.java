@@ -5,6 +5,9 @@ import com.jerry.polymek.common.registries.PolymekDataComponents;
 import com.jerry.polymek.common.recipe.RecipeOption;
 import com.jerry.polymek.common.recipe.RecipeOptions;
 import com.jerry.polymek.common.recipe.RecipeTarget;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +18,6 @@ import mekanism.common.CommonWorldTickHandler;
 import mekanism.common.attachments.FormulaAttachment;
 import mekanism.common.content.assemblicator.RecipeFormula;
 import mekanism.common.inventory.slot.BasicInventorySlot;
-import mekanism.common.recipe.MekanismRecipeType;
 import mekanism.common.registries.MekanismDataComponents;
 import mekanism.common.tile.machine.TileEntityFormulaicAssemblicator;
 import mekanism.common.util.MekanismUtils;
@@ -37,9 +39,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Preserves native crafting, energy, and remainder handling while selecting exact recipe identities.
@@ -217,31 +217,34 @@ public abstract class MixinFormulaicAssemblicator implements RecipeTarget {
         }
     }
 
-    @Redirect(method = "recalculateRecipe", at = @At(value = "INVOKE", target = "Lmekanism/common/recipe/MekanismRecipeType;getRecipeFor(Lnet/minecraft/world/item/crafting/RecipeType;Lnet/minecraft/world/item/crafting/RecipeInput;Lnet/minecraft/world/level/Level;)Ljava/util/Optional;"))
-    private Optional<RecipeHolder<CraftingRecipe>> polymek$resolveManualRecipe(RecipeType<CraftingRecipe> type, RecipeInput input, Level level) {
+    @WrapOperation(method = "recalculateRecipe", at = @At(value = "INVOKE", target = "Lmekanism/common/recipe/MekanismRecipeType;getRecipeFor(Lnet/minecraft/world/item/crafting/RecipeType;Lnet/minecraft/world/item/crafting/RecipeInput;Lnet/minecraft/world/level/Level;)Ljava/util/Optional;"))
+    private Optional<RecipeHolder<CraftingRecipe>> polymek$resolveManualRecipe(RecipeType<CraftingRecipe> type, RecipeInput input, Level level, Operation<Optional<RecipeHolder<CraftingRecipe>>> original) {
         CraftingInput craftingInput = (CraftingInput) input;
         if (polymek$selected == null) {
-            return MekanismRecipeType.getRecipeFor(type, craftingInput, level);
+            return original.call(type, input, level);
         }
         return Optional.ofNullable(polymek$exact(level, craftingInput, polymek$selected));
     }
 
-    @Redirect(method = "loadFormula", at = @At(value = "INVOKE", target = "Lmekanism/common/content/assemblicator/RecipeFormula;create(Lnet/minecraft/world/level/Level;Lmekanism/common/attachments/FormulaAttachment;)Lmekanism/common/content/assemblicator/RecipeFormula;"))
-    private RecipeFormula polymek$loadEncodedRecipe(Level world, FormulaAttachment attachment, ItemStack formulaStack, FormulaAttachment originalAttachment) {
+    @WrapOperation(method = "loadFormula", at = @At(value = "INVOKE", target = "Lmekanism/common/content/assemblicator/RecipeFormula;create(Lnet/minecraft/world/level/Level;Lmekanism/common/attachments/FormulaAttachment;)Lmekanism/common/content/assemblicator/RecipeFormula;"))
+    private RecipeFormula polymek$loadEncodedRecipe(Level world, FormulaAttachment attachment, Operation<RecipeFormula> original, ItemStack formulaStack, FormulaAttachment originalAttachment) {
         ResourceLocation selected = formulaStack.getOrDefault(PolymekDataComponents.FORMULA_RECIPE, Optional.<ResourceLocation>empty()).orElse(null);
         if (selected == null) {
-            return RecipeFormula.create(world, attachment);
+            return original.call(world, attachment);
         }
         CraftingInput.Positioned input = MekanismUtils.getCraftingInput(3, 3, attachment.inventory(), true);
         return new RecipeFormula(input, polymek$exact(world, input.input(), selected));
     }
 
-    @Redirect(method = "encodeFormula", at = @At(value = "INVOKE", target = "Lmekanism/common/content/assemblicator/RecipeFormula;create(Lnet/minecraft/world/level/Level;Ljava/util/List;)Lmekanism/common/content/assemblicator/RecipeFormula;"))
-    private RecipeFormula polymek$encodeSelectedRecipe(Level level, List<IInventorySlot> slots) {
-        CraftingInput.Positioned input = MekanismUtils.getCraftingInputSlots(3, 3, slots, true);
-        RecipeHolder<CraftingRecipe> recipe = polymek$selected == null
-                ? MekanismRecipeType.getRecipeFor(RecipeType.CRAFTING, input.input(), level).orElse(null)
-                : polymek$exact(level, input.input(), polymek$selected);
+    @WrapOperation(method = "encodeFormula", at = @At(value = "INVOKE", target = "Lmekanism/common/content/assemblicator/RecipeFormula;create(Lnet/minecraft/world/level/Level;Ljava/util/List;)Lmekanism/common/content/assemblicator/RecipeFormula;"))
+    private RecipeFormula polymek$encodeSelectedRecipe(Level world, List<IInventorySlot> craftingGridSlots, Operation<RecipeFormula> original) {
+        if (polymek$selected == null) {
+            RecipeFormula formula = original.call(world, craftingGridSlots);
+            polymek$encoding = formula.recipe() == null ? null : formula.recipe().id();
+            return formula;
+        }
+        CraftingInput.Positioned input = MekanismUtils.getCraftingInputSlots(3, 3, craftingGridSlots, true);
+        RecipeHolder<CraftingRecipe> recipe = polymek$exact(world, input.input(), polymek$selected);
         polymek$encoding = recipe == null ? null : recipe.id();
         return new RecipeFormula(input, recipe);
     }
@@ -255,14 +258,15 @@ public abstract class MixinFormulaicAssemblicator implements RecipeTarget {
         return stack;
     }
 
-    @Inject(method = "doSingleCraft", at = @At("HEAD"), cancellable = true)
-    private void polymek$validateBeforeCraft(CallbackInfoReturnable<Boolean> callback) {
+    @WrapMethod(method = "doSingleCraft")
+    private boolean polymek$validateBeforeCraft(Operation<Boolean> original) {
         // A craft packet may arrive immediately after /reload, before the next native machine tick.
         cachedRecipe = null;
         recalculateRecipe();
         if (!isRecipe) {
-            callback.setReturnValue(false);
+            return false;
         }
+        return original.call();
     }
 
     @Inject(method = "loadAdditional", at = @At("TAIL"))

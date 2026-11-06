@@ -5,6 +5,8 @@ import com.jerry.polymek.common.recipe.RecipeOption;
 import com.jerry.polymek.common.recipe.RecipeOptions;
 import com.jerry.polymek.compat.qio.QIOCraftingTarget;
 import com.jerry.polymek.compat.qio.QIOSelectionStorage;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -134,23 +136,23 @@ public abstract class MixinQIOCraftingWindow implements QIOCraftingTarget {
         }
     }
 
-    @Inject(method = "updateOutputSlot", at = @At("HEAD"), cancellable = true)
-    private void polymek$resolveSelectedRecipe(Level level, CallbackInfo callback) {
+    @WrapMethod(method = "updateOutputSlot")
+    private void polymek$resolveSelectedRecipe(Level world, Operation<Void> original) {
         ResourceLocation selected = polymek$selectedRecipe;
         if (selected == null) {
+            original.call(world);
             return;
         }
-        callback.cancel();
         CraftingInput input = polymek$craftingInput().input();
         if (input.isEmpty()) {
             lastRecipe = null;
             outputSlot.setEmpty();
             return;
         }
-        RecipeHolder<?> resolved = level.getRecipeManager().byKey(selected).orElse(null);
-        if (resolved != null && resolved.value() instanceof CraftingRecipe recipe && recipe.matches(input, level)) {
+        RecipeHolder<?> resolved = world.getRecipeManager().byKey(selected).orElse(null);
+        if (resolved != null && resolved.value() instanceof CraftingRecipe recipe && recipe.matches(input, world)) {
             lastRecipe = new RecipeHolder<>(resolved.id(), recipe);
-            outputSlot.setStack(recipe.assemble(input, level.registryAccess()));
+            outputSlot.setStack(recipe.assemble(input, world.registryAccess()));
             polymek$invalidReported = false;
             polymek$selectionValidated = true;
         } else {
