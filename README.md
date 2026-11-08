@@ -1,16 +1,16 @@
 # Polymorphic Mekanism
 
-**This is a compatible mod. It Enables [Mekanism](https://www.curseforge.com/minecraft/mc-mods/mekanism)'s Formulaic Assemblicator, QIO, and Robit to use the [Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph) feature.**
+**This compatibility mod brings [Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph) recipe selection to [Mekanism](https://www.curseforge.com/minecraft/mc-mods/mekanism)'s Formulaic Assemblicator, QIO, and Robit.**
 
-**You can now save and modify conflicting recipes in Formula Assemblicator, but you need to turn off automatic mode first.**
+**You can select and save conflicting recipes in the Formulaic Assemblicator. Turn off automatic mode before changing the selected recipe.**
 
 ![image](https://media.forgecdn.net/attachments/description/1781223/description_8c271104-bc2e-43c6-80ca-493ffb6bea11.png)
 
-**As is well known, the QIO dashboard can open three GUI like crafting table, which can now freely switch conflicting recipes without interfering with each other.**
+**The QIO Dashboard has three crafting windows, each of which can switch between conflicting recipes independently.**
 
 ![image](https://media.forgecdn.net/attachments/description/1781223/description_d10b336d-4d4b-4d60-a397-c5d19fafcdc9.png)
 
-**The robit's crafting table is automatically compatible with Polymorph, so there is no need to make too many adjustments, but it is additionally compatible with the robit's furnace.**
+**The Robit's Crafting Table is already compatible with Polymorph. This mod also adds recipe selection to the Robit's Furnace.**
 
 ![image](https://media.forgecdn.net/attachments/description/1781223/description_fe8cfce6-f447-4341-9e38-93dee3b09447.png)
 
@@ -34,14 +34,14 @@ Windows PowerShell:
 .\gradlew.bat build
 ```
 
-Linux / macOS：
+Linux / macOS:
 
 ```sh
 sh ./gradlew build
 ```
 
-The build product is located in `build/libs/`. The current default file name is ` polymek-1.0.0. jar `, and the mod ID and version are determined by ` mod_id ` and ` mod_version ` in ` gradle. properties `.
+The build artifact is located in `build/libs/`. The default filename is `polymek-1.0.0.jar`; the mod ID and version are set by `mod_id` and `mod_version` in `gradle.properties`.
 
-## 许可证
+## License
 
-This project adopts [MIT License](LICENSE)，and the copyright belongs to Lost Myself. Third party dependencies follow their respective licenses.
+This project is licensed under the [MIT License](LICENSE). Copyright belongs to Lost Myself. Third-party dependencies are licensed under their respective terms.

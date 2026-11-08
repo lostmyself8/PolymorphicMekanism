@@ -114,7 +114,7 @@ public abstract class MixinQIOCraftingWindow implements QIOCraftingTarget {
     }
 
     @Inject(method = "craftingFinished", at = @At("TAIL"))
-    private void polymek$endCrafting(Level level, CallbackInfo callback) {
+    private void polymek$endCrafting(Level world, CallbackInfo callback) {
         polymek$craftingCycle = false;
     }
 

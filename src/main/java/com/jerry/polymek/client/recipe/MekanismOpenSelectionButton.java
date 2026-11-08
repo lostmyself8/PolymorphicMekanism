@@ -13,7 +13,9 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
-/** Keeps Polymorph's picker interaction while rendering Mekanism's native button background. */
+/**
+ * Keeps Polymorph's picker interaction while rendering Mekanism's native button background.
+ */
 public final class MekanismOpenSelectionButton extends OpenSelectionButton {
 
     private static final ResourceLocation ICON = PolymorphicMekanism.rl("gui/button/craft_change.png");
@@ -28,7 +30,9 @@ public final class MekanismOpenSelectionButton extends OpenSelectionButton {
         setOffsets(x, y);
     }
 
-    /** Updates the hit box immediately, including before a moved QIO window handles its next click. */
+    /**
+     * Updates the hit box immediately, including before a moved QIO window handles its next click.
+     */
     @Override
     public void setOffsets(int x, int y) {
         super.setOffsets(x, y);

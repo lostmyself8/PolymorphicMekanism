@@ -3,6 +3,7 @@ package com.jerry.polymek.client.robit;
 import com.jerry.polymek.client.recipe.ContextualRecipesWidget;
 import com.jerry.polymek.common.recipe.RecipeTargetKey;
 import com.jerry.polymek.compat.robit.RobitIntegration;
+import net.minecraft.client.gui.GuiGraphics;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -13,6 +14,9 @@ import net.minecraft.world.item.crafting.RecipeType;
 
 /** Reuses Polymorph's selector for the Robit's furnace recipe context. */
 public final class RobitRecipesWidget extends ContextualRecipesWidget {
+
+    public static final int BUTTON_X = 116;
+    public static final int BUTTON_Y = 17;
 
     private final Slot output;
     private final Slot input;
@@ -30,6 +34,23 @@ public final class RobitRecipesWidget extends ContextualRecipesWidget {
         return new RecipeTargetKey(RobitIntegration.SMELTING, 0);
     }
 
+    public void renderNativeButton(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        renderNativePickerButton(graphics, mouseX, mouseY, partialTick);
+    }
+
+    public boolean isNativeButtonVisible() {
+        return hasVisiblePickerButton();
+    }
+
+    public boolean clickNativeButton(double mouseX, double mouseY, int button) {
+        return clickNativePickerButton(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        return clickPickerSelectionOnly(mouseX, mouseY, button);
+    }
+
     @Override
     protected List<ItemStack> inputStacks() {
         return List.of(input.getItem());
@@ -38,6 +59,16 @@ public final class RobitRecipesWidget extends ContextualRecipesWidget {
     @Override
     public Slot getOutputSlot() {
         return output;
+    }
+
+    @Override
+    public int getXPos() {
+        return BUTTON_X;
+    }
+
+    @Override
+    public int getYPos() {
+        return BUTTON_Y;
     }
 
     @Override

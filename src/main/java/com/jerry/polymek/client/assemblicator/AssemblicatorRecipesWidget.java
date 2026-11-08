@@ -3,15 +3,23 @@ package com.jerry.polymek.client.assemblicator;
 import com.jerry.polymek.client.recipe.ContextualRecipesWidget;
 import com.jerry.polymek.common.recipe.RecipeTargetKey;
 import com.jerry.polymek.compat.assemblicator.AssemblicatorIntegration;
+import net.minecraft.client.gui.GuiGraphics;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import mekanism.common.inventory.container.tile.FormulaicAssemblicatorContainer;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-/** Places a contextual Polymorph picker after the formulaic assemblicator's native auto-mode button. */
+/**
+ * Places a contextual Polymorph picker after the formulaic assemblicator's native auto-mode button.
+ */
 public final class AssemblicatorRecipesWidget extends ContextualRecipesWidget {
+
+    public static final int BUTTON_X = 130;
+    public static final int BUTTON_Y = 75;
 
     private final FormulaicAssemblicatorContainer menu;
 
@@ -23,6 +31,23 @@ public final class AssemblicatorRecipesWidget extends ContextualRecipesWidget {
     @Override
     protected RecipeTargetKey targetKey() {
         return new RecipeTargetKey(AssemblicatorIntegration.KIND, 0);
+    }
+
+    public void renderNativeButton(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        renderNativePickerButton(graphics, mouseX, mouseY, partialTick);
+    }
+
+    public boolean isNativeButtonVisible() {
+        return hasVisiblePickerButton();
+    }
+
+    public boolean clickNativeButton(double mouseX, double mouseY, int button) {
+        return clickNativePickerButton(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        return clickPickerSelectionOnly(mouseX, mouseY, button);
     }
 
     @Override
@@ -45,11 +70,11 @@ public final class AssemblicatorRecipesWidget extends ContextualRecipesWidget {
 
     @Override
     public int getXPos() {
-        return 130;
+        return BUTTON_X;
     }
 
     @Override
     public int getYPos() {
-        return 75;
+        return BUTTON_Y;
     }
 }

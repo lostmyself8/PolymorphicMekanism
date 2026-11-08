@@ -14,7 +14,9 @@
     "robit.MixinItemRobit"
   ],
   "client": [
-    "client.qio.MixinGuiCraftingWindow"
+    "client.qio.MixinGuiCraftingWindow",
+    "client.assemblicator.MixinGuiFormulaicAssemblicator",
+    "client.robit.MixinGuiRobitSmelting"
   ],
   "injectors": {
     "defaultRequire": 1

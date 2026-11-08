@@ -9,7 +9,9 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
-/** Isolates screen and picker registration from the dedicated-server class loader. */
+/**
+ * Isolates screen and picker registration from the dedicated-server class loader.
+ */
 @Mod(value = PolymorphicMekanism.MOD_ID, dist = Dist.CLIENT)
 public final class PolymekClient {
 

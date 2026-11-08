@@ -11,11 +11,13 @@ import com.jerry.polymek.common.network.RecipeSelectPayload;
 import com.jerry.polymek.common.network.RecipeSnapshot;
 import com.jerry.polymek.common.network.RecipeSnapshots;
 import com.jerry.polymek.common.recipe.RecipeTargetKey;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
+
 import mekanism.api.text.ILangEntry;
 import mekanism.client.gui.GuiMekanism;
 import net.minecraft.client.Minecraft;
@@ -27,7 +29,9 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
-/** Reuses Polymorph's picker while scoping every request and response to one real native recipe context. */
+/**
+ * Reuses Polymorph's picker while scoping every request and response to one real native recipe context.
+ */
 public abstract class ContextualRecipesWidget extends AbstractRecipesWidget implements ITickingRecipesWidget {
 
     private final Consumer<RecipeSnapshot> snapshotReceiver = this::acceptSnapshot;
@@ -43,18 +47,30 @@ public abstract class ContextualRecipesWidget extends AbstractRecipesWidget impl
         super(screen);
     }
 
-    /** Returns null while this screen has no active recipe context, such as a closed QIO crafting window. */
+    public final boolean isFor(AbstractContainerScreen<?> screen) {
+        return containerScreen == screen;
+    }
+
+    /**
+     * Returns null while this screen has no active recipe context, such as a closed QIO crafting window.
+     */
     protected abstract @Nullable RecipeTargetKey targetKey();
 
-    /** Supplies current input stacks and relevant item components; copies are kept to detect actual changes. */
+    /**
+     * Supplies current input stacks and relevant item components; copies are kept to detect actual changes.
+     */
     protected abstract List<ItemStack> inputStacks();
 
-    /** Allows hosts to suppress presentation from live inputs without discarding their remembered recipe context. */
+    /**
+     * Allows hosts to suppress presentation from live inputs without discarding their remembered recipe context.
+     */
     protected boolean mayPresentPicker() {
         return true;
     }
 
-    /** Rejects changed materials on every frame and hit test while keeping count-only refreshes visually stable. */
+    /**
+     * Rejects changed materials on every frame and hit test while keeping count-only refreshes visually stable.
+     */
     protected final boolean enforcePickerPresentation() {
         if (!initialized) {
             return false;
@@ -71,7 +87,9 @@ public abstract class ContextualRecipesWidget extends AbstractRecipesWidget impl
         return present;
     }
 
-    /** Refreshes exact inputs immediately, preserving presentation only while the materials and target still match. */
+    /**
+     * Refreshes exact inputs immediately, preserving presentation only while the materials and target still match.
+     */
     private @Nullable RecipeTargetKey refreshContext() {
         RecipeTargetKey key = targetKey();
         List<ItemStack> input = key == null ? List.of() : inputStacks();
@@ -100,13 +118,17 @@ public abstract class ContextualRecipesWidget extends AbstractRecipesWidget impl
         selectionWidget.setActive(false);
     }
 
-    /** Prevents native views from presenting the previous window's snapshot before the new context is initialized. */
+    /**
+     * Prevents native views from presenting the previous window's snapshot before the new context is initialized.
+     */
     protected final boolean hasPickerContext(RecipeTargetKey key) {
         return initialized && key.equals(refreshContext()) && acceptedSnapshot != null
                 && acceptedSnapshot.matchesPresentationContext(containerScreen.getMenu().containerId, key, lastInput);
     }
 
-    /** Synchronizes both offsets and real hit boxes immediately; Polymorph's offset setters alone wait until render. */
+    /**
+     * Synchronizes both offsets and real hit boxes immediately; Polymorph's offset setters alone wait until render.
+     */
     protected final void synchronizePickerPosition(int relativeX, int relativeY) {
         int left = Services.CLIENT_PLATFORM.getScreenLeft(containerScreen);
         int top = Services.CLIENT_PLATFORM.getScreenTop(containerScreen);
@@ -116,14 +138,70 @@ public abstract class ContextualRecipesWidget extends AbstractRecipesWidget impl
         selectionWidget.setPosition(left + relativeX + xOffset, top + relativeY + yOffset);
     }
 
-    /** Draws only the picker contents at the caller's existing pose and depth, for native window ownership. */
+    /**
+     * Draws only the picker contents at the caller's existing pose and depth, for native window ownership.
+     */
     protected final void renderPickerContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         if (enforcePickerPresentation()) {
             super.render(graphics, mouseX, mouseY, partialTick);
         }
     }
 
-    /** Handles one picker click after its native owner has established position, focus, and hit testing. */
+    /**
+     * Renders the button through a Mekanism-owned element while keeping this widget's selection panel.
+     */
+    protected final void renderNativePickerButton(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        if (enforcePickerPresentation()) {
+            synchronizePickerPosition(getXPos(), getYPos());
+            openButton.render(graphics, mouseX, mouseY, partialTick);
+        }
+    }
+
+    /**
+     * Reports whether the native host should expose the button's hit target.
+     */
+    protected final boolean hasVisiblePickerButton() {
+        return enforcePickerPresentation();
+    }
+
+    /**
+     * Forwards a click from the native host to Polymorph's existing button action.
+     */
+    protected final boolean clickNativePickerButton(double mouseX, double mouseY, int button) {
+        if (!enforcePickerPresentation() || !editable) {
+            return false;
+        }
+        synchronizePickerPosition(getXPos(), getYPos());
+        return openButton.mouseClicked(mouseX, mouseY, button);
+    }
+
+    /**
+     * Forwards picker-panel clicks without making the detached selector button a second hit target.
+     */
+    protected final boolean clickPickerSelectionOnly(double mouseX, double mouseY, int button) {
+        if (!enforcePickerPresentation() || !editable) {
+            return false;
+        }
+        synchronizePickerPosition(getXPos(), getYPos());
+        // Let the native control receive this click and toggle the panel, even while it is already expanded.
+        // Mekanism first dispatches its windows, so the button cannot receive a click through a window above it.
+        if (openButton.isMouseOver(mouseX, mouseY)) {
+            return false;
+        }
+        if (selectionWidget.mouseClicked(mouseX, mouseY, button)) {
+            selectionWidget.setActive(false);
+            return true;
+        }
+        if (selectionWidget.isActive()) {
+            selectionWidget.setActive(false);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Handles one picker click after its native owner has established position, focus, and hit testing.
+     */
     protected final void clickPickerContents(double mouseX, double mouseY, int button) {
         if (enforcePickerPresentation() && editable) {
             super.mouseClicked(mouseX, mouseY, button);
@@ -161,7 +239,9 @@ public abstract class ContextualRecipesWidget extends AbstractRecipesWidget impl
         }
     }
 
-    /** The framework's unscoped packets may invalidate a view but cannot overwrite a contextual snapshot. */
+    /**
+     * The framework's unscoped packets may invalidate a view but cannot overwrite a contextual snapshot.
+     */
     @Override
     public void setRecipesList(Set<IRecipePair> ignored, ResourceLocation selected) {
         dirty = true;
@@ -204,13 +284,8 @@ public abstract class ContextualRecipesWidget extends AbstractRecipesWidget impl
         if (enforcePickerPresentation()) {
             graphics.pose().pushPose();
             graphics.pose().translate(0, 0, containerScreen instanceof GuiMekanism<?> ? GuiMekanism.maxZOffset + 200 : 200);
-            super.render(graphics, mouseX, mouseY, partialTick);
+            selectionWidget.render(graphics, mouseX, mouseY, partialTick);
             graphics.pose().popPose();
         }
-    }
-
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        return enforcePickerPresentation() && editable && super.mouseClicked(mouseX, mouseY, button);
     }
 }

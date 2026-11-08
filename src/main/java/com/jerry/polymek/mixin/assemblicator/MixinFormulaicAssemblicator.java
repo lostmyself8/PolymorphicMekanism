@@ -64,7 +64,7 @@ public abstract class MixinFormulaicAssemblicator implements RecipeTarget {
     @Shadow
     private ItemStack lastOutputStack;
     @Shadow
-    private NonNullList<ItemStack> lastRemainingItems;
+    NonNullList<ItemStack> lastRemainingItems;
     @Shadow
     private boolean isRecipe;
     @Shadow
@@ -283,9 +283,9 @@ public abstract class MixinFormulaicAssemblicator implements RecipeTarget {
     }
 
     @Inject(method = "saveAdditional", at = @At("TAIL"))
-    private void polymek$writeSelection(CompoundTag nbt, HolderLookup.Provider provider, CallbackInfo callback) {
+    private void polymek$writeSelection(CompoundTag nbtTags, HolderLookup.Provider provider, CallbackInfo callback) {
         if (polymek$selected != null) {
-            nbt.putString(polymek$SELECTED_RECIPE_TAG, polymek$selected.toString());
+            nbtTags.putString(polymek$SELECTED_RECIPE_TAG, polymek$selected.toString());
         }
     }
 }
